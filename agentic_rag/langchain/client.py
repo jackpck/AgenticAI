@@ -4,13 +4,15 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from typing import Any, Dict, List, Optional
 from contextlib import AsyncExitStack
-import ollama
+
+from langchain.chat_models import ChatOllama
 
 nest_asyncio.apply()
 
 class MCPOpenAIClient:
     def __init__(self, model: str):
-        self.model = model
+        self.model = ChatOllama(model=model,
+                                temperature=0)
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
         self.stdio: Optional[Any] = None
@@ -57,10 +59,7 @@ class MCPOpenAIClient:
 
     async def process_query(self, query: str) -> str:
         tools = await self.get_mcp_tools()
-        response = await ollama.chat(model=self.model,
-                               messages=[{'role': 'user', 'content': query}],
-                               tools=tools
-        )
+        response = await self.model.bind_tools(tools).invoke({"query":query})
 
         if response.message.tool_calls:
             for tool in response.message.tool_calls:
@@ -75,10 +74,6 @@ class MCPOpenAIClient:
                      }
                 )
 
-                final_response = await ollama.chat(model=self.model,
-                                                   messages=messages,
-                                                   tools=tools,
-                                                   tool_choice="none")
 
                 return final_response.choices[0].message.content
 
@@ -87,7 +82,7 @@ class MCPOpenAIClient:
         await self.exit_stack.aclose()
 
 async def main():
-    model = "llama3.2"
+    model = "llama3"
     client = MCPOpenAIClient(model)
     await client.connect_to_server("server.py")
 
