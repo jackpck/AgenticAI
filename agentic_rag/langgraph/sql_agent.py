@@ -1,25 +1,40 @@
-from langchain_core.tools import tool
 from dotenv import load_dotenv
 from typing import List, Annotated
 from typing_extensions import TypedDict
-import yfinance as yf
 from langchain_ollama import ChatOllama
 from langchain_core.messages import AnyMessage, SystemMessage, ToolMessage, HumanMessage
 from langgraph.graph.message import add_messages
 from langgraph.graph import StateGraph, START, END
+from langchain import hub
+
+import sqlite3
+from sqlalchemy import create_engine
+from langchain_community.utilities.sql_database import SQLDatabase
+from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
+from langchain_experimental.tools.python.tool import PythonREPLTool
 
 load_dotenv("../.venv")
 
-@tool
-def get_stock_price(symbol: str) -> float:
-    """
-    Get price of a stock
+def create_sqldb(sql_script_path: str):
+    with open(sql_script_path, "r", encoding='utf-8') as f:
+        sql_script = f.read()
+    connection = sqlite3.connect(":memory:")
+    connection.executescript(f"{sql_script}")
 
-    :param symbol: ticker symbol of a stock
-    :return: stock price
-    """
-    ticker = yf.Ticker(symbol)
-    return ticker.info['regularMarketPrice']
+    engine = create_engine("sqlite://",
+                           creator=lambda: connection)
+    db = SQLDatabase(engine)
+    return db
+
+def create_sqltool(sql_script_path: str, model: str):
+    sql_db = create_sqldb(sql_script_path)
+    llm = ChatOllama(model=model,
+                     validate_model_on_init=True,
+                     temperature=0)
+    sql_toolkit = SQLDatabaseToolkit(db=sql_db, llm=llm)
+    tools = sql_toolkit.get_tools()
+    tools.append(PythonREPLTool())
+    return tools
 
 
 class AgentState(TypedDict):
@@ -27,12 +42,14 @@ class AgentState(TypedDict):
 
 
 class ReActAgent:
-    def __init__(self, model: str, tool_list: List):
+    def __init__(self, model: str,
+                 tool_list: List,
+                 system_message: str):
         self.model = ChatOllama(model=model,
                                 validate_model_on_init=True,
                                 temperature=0).bind_tools(tool_list)
         self.tools = {t.name:t for t in tool_list}
-        self._setup_graph(system_message="")
+        self._setup_graph(system_message=system_message)
 
     def _setup_graph(self, system_message):
         graph = StateGraph(AgentState)
@@ -50,6 +67,9 @@ class ReActAgent:
 
     def call_llm(self, state: AgentState):
         messages = state["messages"]
+        print("call_llm")
+        print(f"{messages}")
+        print("*******************")
         if self.system_message:
             messages = [SystemMessage(content=self.system_message)] + messages
         message = self.model.invoke(messages)
@@ -57,6 +77,9 @@ class ReActAgent:
 
     def call_tools(self, state: AgentState):
         tool_calls = state["messages"][-1].tool_calls
+        print("call_tools")
+        print(f"{tool_calls}")
+        print("*******************")
         results = []
         for t in tool_calls:
             result = self.tools[t["name"]].invoke(t["args"])
@@ -67,17 +90,26 @@ class ReActAgent:
 
     def should_call_tools(self, state: AgentState):
         result = state["messages"][-1]
+        print("should_call_tools")
+        print(f"{result}")
+        print("*******************")
         return "tools" if len(result.tool_calls) > 0 else END
 
 
 
 if __name__ == "__main__":
-    tool_list = [get_stock_price]
     model = 'gpt-oss:20b'
     config = {"configurable": {"thread_id":"1"}}
+    SQL_SCRIPT_PATH = "./data/sql_script.txt"
+    SYSTEM_PROMPT_PATH = "langchain-ai/sql-agent-system-prompt"
+
+    tool_list = create_sqltool(SQL_SCRIPT_PATH, model)
+    chatprompttemplate = hub.pull(SYSTEM_PROMPT_PATH)
+    system_message = chatprompttemplate.format(dialect="SQLite", top_k=5)
     agent = ReActAgent(model=model,
-                     tool_list=tool_list)
-    query = """What is the stock price of AAPL today? Also what is the price of Microsoft?"""
+                       tool_list=tool_list,
+                       system_message=system_message)
+    query = """What is the total sales revenue for the top 5 performing dealerships in 2022?"""
     print(f"\nQuery: {query}")
     result = agent.graph.invoke({"messages": [HumanMessage(content=query)]}, config)
     print(f"\nResponse:")

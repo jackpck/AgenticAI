@@ -7,6 +7,8 @@ https://medium.com/@danushidk507/ollama-tool-calling-8e399b2a17a8
 
 https://python.langchain.com/docs/how_to/tool_calling/
 
+https://www.ibm.com/think/tutorials/build-sql-agent-langgraph-mistral-medium-3-watsonx-ai
+
 Anthropic's MCP vs langchain tool
 
 ## Debug
