@@ -9,6 +9,8 @@ https://python.langchain.com/docs/how_to/tool_calling/
 
 https://www.ibm.com/think/tutorials/build-sql-agent-langgraph-mistral-medium-3-watsonx-ai
 
+https://langchain-ai.github.io/langgraph/tutorials/workflows/
+
 Anthropic's MCP vs langchain tool
 
 ## Debug
@@ -16,3 +18,9 @@ Anthropic's MCP vs langchain tool
 If getting NotImplementedError when calling bind_tools(), make sure use LLM that support tool (e.g. llama3 does not)
 
 If still getting NotImplementedError, make sure use ChatOllama from langchain_ollama instead of langchain.model
+
+## Examples
+- stock price agent
+- SQL agent
+- call transcript agent 
+- RAG agent (with metadata tagging)

@@ -10,31 +10,9 @@ from langgraph.graph import StateGraph, START, END
 
 import sqlite3
 from sqlalchemy import create_engine
-from langchain_community.utilities.sql_database import SQLDatabase
-from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 
 load_dotenv("../.venv")
 
-def create_sqldb(sql_script_path: str):
-    with open(sql_script_path, "r", encoding='utf-8') as f:
-        sql_script = f.read()
-    connection = sqlite3.connect(":memory:")
-    connection.executescript(f"{sql_script}")
-
-    engine = create_engine("sqlite://",
-                           creator=lambda: connection)
-    db = SQLDatabase(engine)
-    return db
-
-@tool
-def get_sql_db(sql_script_path: str, model: str):
-    sql_db = create_sqldb(sql_script_path)
-    llm = ChatOllama(model=model,
-                     validate_model_on_init=True,
-                     temperature=0).bind_tools(tool_list)
-    sql_toolkit = SQLDatabaseToolkit(db=sql_db, llm=llm)
-    tools = sql_toolkit.get_tools()
-    return tools
 
 @tool
 def get_stock_price(symbol: str) -> float:

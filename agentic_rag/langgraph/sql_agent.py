@@ -109,7 +109,8 @@ if __name__ == "__main__":
     agent = ReActAgent(model=model,
                        tool_list=tool_list,
                        system_message=system_message)
-    query = """What is the total sales revenue for the top 5 performing dealerships in 2022?"""
+    #query = """What is the total sales revenue for the top 5 performing dealerships in 2022?"""
+    query = """For each date, what is the running average of the sales revenue of the past 3 sales between 2022 and 2023?"""
     print(f"\nQuery: {query}")
     result = agent.graph.invoke({"messages": [HumanMessage(content=query)]}, config)
     print(f"\nResponse:")
