@@ -1,5 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
+import yfinance as yf
 
 load_dotenv("../.venv")
 
@@ -19,6 +20,12 @@ mcp = FastMCP(
 def add(a: int, b: int) -> int:
     """Add two numbers together"""
     return a + b
+
+@mcp.tool()
+def get_stock_price(symbol: str) -> float:
+    """get price of the stock"""
+    ticker = yf.Ticker(symbol)
+    return ticker.info['regularMarketPrice']
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")

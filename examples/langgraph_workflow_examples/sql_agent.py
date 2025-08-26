@@ -100,7 +100,7 @@ class ReActAgent:
 if __name__ == "__main__":
     model = 'gpt-oss:20b'
     config = {"configurable": {"thread_id":"1"}}
-    SQL_SCRIPT_PATH = "./data/sql_script.txt"
+    SQL_SCRIPT_PATH = "data/sql_script.txt"
     SYSTEM_PROMPT_PATH = "langchain-ai/sql-agent-system-prompt"
 
     tool_list = create_sqltool(SQL_SCRIPT_PATH, model)
