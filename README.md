@@ -2,7 +2,7 @@
 
 ## Introduction
 
-###MCP client-server framework 
+### MCP client-server framework 
 
 Server involves three primitives:
 - Tools: e.g. calculator, calender
@@ -44,6 +44,9 @@ interact, which will be decided at runtime by the state of the agent. That being
 be used, albeit much less flexible than langgraph. An example of calling the stock price tool using 
 langchain can be found ``stock_price_agent_langchain.py``
 
+### Agent design pattern ``pattern_template``
+
+Common agent design patterns can be found in the path above.
 
 
 
