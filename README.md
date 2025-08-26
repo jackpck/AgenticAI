@@ -34,7 +34,8 @@ that lies somewhere in between. There are three examples under the path above:
   can be used. The agent should be able to comprehend. 
 - ``sql_agent.py``: write a query to ask questions that can be answered by the querying from the three SQL tables
   listed in ``data/sql_script.txt``.
-- ``call_transcript_agent.py`` [TODO]
+- ``call_transcript_agent.py`` [WIP]: summarize performance and outlook, and identify emerging topics, risks 
+  for equity research consideration.
 
 When the Agent is defined, the agent state is defined by the message, which encompasses the message from the
 LLM, tool called, tool results etc. 
