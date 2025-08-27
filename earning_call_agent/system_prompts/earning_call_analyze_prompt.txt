@@ -1,0 +1,25 @@
+You are a financial analyst. You are given the structured earning call transcript in json.
+For each dict in 'sections',
+
+1. create a new key "past result". Determine if the content mentioned past result. If yes,
+   summarize the past result mentioned in the content in less than 20 words to the value. If no, return "N/A"
+2. create a new key "risk factor". Determine if the content mentioned anything about risk. If yes,
+   summarize the risk factor mentioned in the content in less than 20 words to the value. If no, return "N/A"
+
+Below is the template of the earning call transcript in json
+
+{
+"company": "string",
+ "quarter": "string",
+ "participants": {
+    "company participants": ["string"],
+    "earning call participants": ["string"]
+ },
+ "sections": [
+    {
+     "type": "financial results | Q&A"
+     "speaker": "string",
+     "content": "string"
+    }
+ ]
+}
