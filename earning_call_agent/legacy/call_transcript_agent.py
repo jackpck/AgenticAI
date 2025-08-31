@@ -35,7 +35,7 @@ class ReActAgent:
                                         top_p=0.9,
                                         top_k=10)
         else:
-            self.model = init_chat_model(model,
+            self.model = init_chat_model(model=model,
                                          model_provider=model_provider)
 
         self._setup_graph(system_message=system_message)
@@ -103,7 +103,12 @@ class ReActAgent:
         output_dir_path = os.path.dirname(output_path)
         if os.path.exists(output_dir_path):
             with open(output_path, "w", encoding='utf-8') as f:
-                f.write(state["transcript_json"])
+                transcript_json = state["transcript_json"]
+                transcript_json_clean = transcript_json.strip()\
+                                        .removeprefix("```json")\
+                                        .removeprefix("```")\
+                                        .removesuffix("```")
+                f.write(transcript_json_clean)
         else:
             raise Exception("Output directory in user query does not exist.")
 
@@ -113,16 +118,16 @@ if __name__ == "__main__":
     model = "gemini-2.5-flash"
     model_provider = "google_genai"
     config = {"configurable": {"thread_id":"2"}}
-    TRANSCRIPT_PATH = "./data/nvda_Q1_2026.txt"
-    OUTPUT_PATH = "./data/nvda_Q1_2026_preprocessed.txt"
-    PREPROCESS_PROMPT_PATH = "./system_prompts/earning_call_preprocess_prompt.txt"
+    TRANSCRIPT_PATH = "../data/raw/nvda_Q1_2026.txt"
+    OUTPUT_PATH = "../data/processed/nvda_Q1_2026_preprocessed.json"
+    PREPROCESS_PROMPT_PATH = "../system_prompts/earning_call_preprocess_prompt.txt"
     with open(PREPROCESS_PROMPT_PATH, "r", encoding='utf-8') as f:
         PREPROCESS_PROMPT = f.read()
 
     agent = ReActAgent(model=model,
                        system_message=PREPROCESS_PROMPT,
                        model_provider=model_provider)
-    query = """transcript path: ./data/nvda_Q1_2026_excerpt.txt\noutput path: ./data/nvda_Q1_2026_preprocessed.txt"""
+    query = f"transcript path: {TRANSCRIPT_PATH}\noutput path: {OUTPUT_PATH}"
     print(f"\nQuery: {query}")
     agent.graph.invoke({"input": query}, config)
 
