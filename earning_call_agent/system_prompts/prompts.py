@@ -55,5 +55,12 @@ Add the following key: value
 "sentiment summary": str
 "risk factor": yes | no
 "risk summary": str
+"""
 
+SYSTEM_CHATBOT_PROMPT = """
+{0}
+
+Given the json above, answer the following questions from the user:
+
+{1}
 """

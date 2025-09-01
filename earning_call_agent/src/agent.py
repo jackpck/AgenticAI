@@ -88,6 +88,21 @@ class EarningCallAgent:
         else:
             raise Exception("Output directory does not exist.")
 
+    def WIP_analyze_llm(self, state: AgentState) -> str:
+        """
+        Analyze the sentiment and possible risk factor in each speech. Instruction
+        given by system_analysis_prompt
+        :param state: state of the agent
+        :return: string of json of the structured earning call transcript with sentiment and risk
+        """
+        messages = [
+            SystemMessage(content=self.system_prompt),
+            HumanMessage(content=state.transcript_json)
+        ]
+        response = self.model.invoke(messages)
+
+        return {"transcript_analyze_json": response.content}
+
     def _setup_graph(self):
         graph = StateGraph(AgentState)
         graph.add_node("read_preprocessed_json", self.read_preprocessed_json)

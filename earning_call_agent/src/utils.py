@@ -19,6 +19,7 @@ def load_transcript_json(output_folder_path,
 if __name__ == "__main__":
     output_folder_path = "../data/processed"
     ticker = "NVDA"
+    ticker = ticker.lower()
     quarter = 1
     year = 2026
 
