@@ -8,7 +8,6 @@ class AgentState(BaseModel):
     output_folder_path: str
     transcript: str = None
     transcript_json: str = None
-    transcript_analyze_json: str = None
 
 __all__ = [
     "AgentState"

@@ -19,12 +19,11 @@ load_dotenv("../../venv")
 config = {"configurable": {"thread_id": "1"}}
 model = "gemini-2.5-flash"
 model_provider = "google_genai"
-system_prompt = prompts.SYSTEM_PREPROCESS_PROMPT
 TRANSCRIPT_FOLDER_PATH = "../data/raw"
 OUTPUT_FOLDER_PATH = "../data/processed"
 agent = EarningCallAgent(model=model,
                          model_provider=model_provider,
-                         system_prompt=system_prompt)
+                         system_prompt=prompts)
 
 stock = "AAPL"
 context = {"ticker": stock.lower(),

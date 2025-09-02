@@ -21,11 +21,11 @@ Note:
 1. each section has a type of either "financial results" or "Q&A" or "Outlook" or "Other"
 2. if a section is Q&A, combine the question and answer paragraphs together in the content with the question
    paragraph starts  with "[TAG: Q]: " and the answer paragraph starts with "[TAG: A]: "
-3. the result should be a string of json. Do not include ```json ``` in the beginning or at the end.
+3. if a section contains more than one type, create different dict for each type
 """
 
 SYSTEM_ANALYSIS_PROMPT = """
-You are a financial analyst. Given the content encoded in the following json format,
+You are a financial analyst. Given each content encoded in "sections" in the following json format,
 
 {
 "company": "string",
@@ -43,18 +43,19 @@ You are a financial analyst. Given the content encoded in the following json for
  ]
 }
 
-answer the following questions
-
-1. what's the sentiment? Choose either negative, neutral or positive
-2. if sentiment is positive or negative, summarize the reason in one sentence. If neutral, return NA
-3. did the content mention any risk factor to the company? Choose yes or no
+Add the following to each item under sections in addition to "type", "speaker" and "content":
+    {
+     "sentiment": negative | neutral | positive
+     "sentiment summary": str
+     "risk factor": yes | no
+     "risk summary": str
+    }
+    
+Note:
+1. sentiment of each content can only be "negative", "neutral" or "positive"
+2. if sentiment is positive or negative, summarize the sentiment in one sentence. If neutral, return NA
+3. risk factor can only be "yes" if the content mentioned any risk factor and "no" if otherwise
 4. if content mentioned any risk factor, summarize the risk in one sentence. If no risk mentioned, return NA
-
-Add the following key: value
-"sentiment": negative | neutral | positive
-"sentiment summary": str
-"risk factor": yes | no
-"risk summary": str
 """
 
 SYSTEM_CHATBOT_PROMPT = """

@@ -29,10 +29,11 @@ TRANSCRIPT_FOLDER_PATH = "../data/raw"
 OUTPUT_FOLDER_PATH = "../data/processed"
 agent = EarningCallAgent(model=model,
                          model_provider=model_provider,
-                         system_prompt=system_preprocess_prompt)
+                         system_prompt=prompts)
+
 
 try:
-    ticker_list = ["NVDA","AAPL"]
+    ticker_list = ["NVDA","AAPL","MSFT"]
     year_list = [2025, 2026]
     quarter_list = [1,2,3,4]
 
@@ -42,12 +43,10 @@ try:
         stock = st.selectbox(
             "Choose stock", ticker_list
         ).lower()
-
     with col2:
         year = st.selectbox(
             "Choose year", year_list
         )
-
     with col3:
         quarter = st.selectbox(
             "Choose quarter", quarter_list
@@ -59,34 +58,66 @@ try:
         context = {"ticker": stock,
                    "year": year,
                    "quarter": quarter,
-                   "transcript_folder_path":TRANSCRIPT_FOLDER_PATH,
-                   "output_folder_path":OUTPUT_FOLDER_PATH}
+                   "transcript_folder_path": TRANSCRIPT_FOLDER_PATH,
+                   "output_folder_path": OUTPUT_FOLDER_PATH}
+        # to ensure the output file exists
         agent.graph.invoke(context, config)
 
-        # 1. show transcript df
-        st.subheader("Structured transcript")
         transcript_json_str = utils.load_transcript_json(output_folder_path=OUTPUT_FOLDER_PATH,
-                                                   ticker=stock,
-                                                   quarter=quarter,
-                                                   year=year)
+                                                         ticker=stock,
+                                                         quarter=quarter,
+                                                         year=year)
         df = utils.convert_json_to_df(transcript_json_str)
-        st.dataframe(df)
 
-        # 2. show insights
-        st.subheader("Insight overview")
-        df_type_count = df["type"].value_counts()
-        fig = px.pie(
-            names = df_type_count.index,
-            values = df_type_count.values,
-            title = "speech type"
-        )
-        st.plotly_chart(fig)
+        # 1. show insights
+        col_sentiment, col_risk = st.columns(2)
+        with col_sentiment:
+            st.subheader("Sentiment")
+            df_sentiment_count = df["sentiment"].value_counts()
+            fig_sentiment = px.pie(
+                names = df_sentiment_count.index,
+                values = df_sentiment_count.values,
+            )
+            st.plotly_chart(fig_sentiment)
+        with col_risk:
+            st.subheader("Risk")
+            df_risk_count = df["risk factor"].value_counts()
+            fig_risk = px.pie(
+                names = df_risk_count.index,
+                values = df_risk_count.values,
+            )
+            st.plotly_chart(fig_risk)
 
-        # 3. chatbot
+        # 2. chatbot
+        st.subheader("Earning call transcript chatbot")
+
+        col_sentiment_filter, col_risk_filter = st.columns(2)
+        with col_sentiment_filter:
+            sentiment_filter = st.multiselect(
+                "Choose sentiment",
+                ["positive","negative","mixed"],
+                ["positive", "negative", "mixed"]
+            )
+            if not sentiment_filter:
+                st.error("Please select at least one sentiment.")
+        with col_risk_filter:
+            risk_filter = st.multiselect(
+                "Choose risk",
+                ["yes","no"],
+                ["yes", "no"]
+            )
+            if not risk_filter:
+                st.error("Please select at least one risk.")
+
+        filter_dict = {"sentiment": sentiment_filter,
+                       "risk factor": risk_filter}
+
+        transcript_json_filtered = utils.filter_json(transcript_json_str,
+                                                     filter_dict=filter_dict)
+
         chatbot = init_chat_model(model=model,
                                   model_provider=model_provider)
 
-        st.subheader("Earning call transcript chatbot")
 
         if "model" not in st.session_state:
             st.session_state["model"] = model
@@ -109,13 +140,19 @@ try:
                 st.markdown(prompt)
 
             with st.chat_message("assistant"):
-                messages = system_chatbot_prompt.format(transcript_json_str,
+                messages = system_chatbot_prompt.format(transcript_json_filtered,
                                                         st.session_state.messages[-1]["content"])
-                stream = chatbot.stream(messages)
+                stream = chatbot.astream(messages)
                 response = st.write_stream(stream)
             st.session_state.messages.append({"role": "assistant", "content": response})
 
+        if st.button("Reset chat"):
+            st.session_state.clear()
 
+
+        # 3. show transcript df
+        st.subheader("Structured transcript")
+        st.dataframe(df)
 
 
 except URLError as e:
