@@ -1,3 +1,5 @@
 .venv
+venv
 .idea
-config/google_ai_studio_api.txt
+config/set_api_key.sh
+*__pycache__

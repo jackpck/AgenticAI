@@ -30,6 +30,7 @@ class GenerateAnalystsState(TypedDict):
     human_analyst_feedback: str # Human feedback
     analysts: List[Analyst] # Analyst asking questions
 
+
 __all__ = [
     "Analyst",
     "Perspectives",
