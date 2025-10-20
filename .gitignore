@@ -1,5 +1,5 @@
 .venv
 venv
 .idea
-config/set_api_key.sh
+credentials/set_api_key.sh
 *__pycache__

@@ -1,6 +1,8 @@
-from typing import List
+from typing import List, Annotated
 from typing_extensions import TypedDict
+from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
+import operator
 
 class Analyst(BaseModel):
     affiliation: str = Field(
@@ -30,9 +32,22 @@ class GenerateAnalystsState(TypedDict):
     human_analyst_feedback: str # Human feedback
     analysts: List[Analyst] # Analyst asking questions
 
+class InterviewState(MessagesState):
+    max_num_turns = int
+    context: Annotated[list, operator.add]
+    analyst: Analyst
+    interview: str
+    sections: list
+
+class SearchQuery(BaseModel):
+    search_query: str = Field(None, description="Search query for retrieval.")
+
+
+
 
 __all__ = [
     "Analyst",
     "Perspectives",
     "GenerateAnalystsState",
+    "SearchQuery"
 ]
