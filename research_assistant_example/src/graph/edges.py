@@ -32,3 +32,23 @@ def route_messages(state: InterviewState, name: str = "expert"):
     if "Thank you so much for your help" in last_question.content:
         return "save_interview"
     return "ask_question"
+
+
+def initiate_all_interviews(state: ResearchGraphState):
+    """
+    This is the map step where we run each interview sub-graph using Send API
+    """
+
+    human_analyst_feedback = state.get("human_analyst_feedback")
+    if human_analyst_feedback:
+        return "create_analysts"
+
+    else:
+        topic = state["topic"]
+        # "conduct_interview will be a node of sub-graph intitated by build_interview_workflow()
+        # which takes in the InterviewState schema
+        return [Send("conduct_interview", {"analyst": analyst,
+                                           "messages": [HumanMessage(
+                                               content=f"So you said you were writing an article on {topic}?"
+                                           )
+                                           ]}) for analyst in state["analysts"]]

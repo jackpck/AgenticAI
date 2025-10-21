@@ -42,6 +42,16 @@ class InterviewState(MessagesState):
 class SearchQuery(BaseModel):
     search_query: str = Field(None, description="Search query for retrieval.")
 
+class ResearchGraphState(TypedDict):
+    topic: str # research topic
+    max_analysts: int #number of analysts
+    human_analyst_feedback: str #human feedback
+    analysts: List[Analyst] #analyst asking questions
+    sections: Annotated[list, operator.add] # Send() API key
+    introduction: str # introduction for the final report
+    content: str # content for the final report
+    conclusion: str #conclusion for the final report
+    final_report: str # final report
 
 
 

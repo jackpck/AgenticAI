@@ -2,10 +2,12 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.runtime import Runtime
 from langchain_community.document_loaders import WikipediaLoader
 from langchain_core.messages import get_buffer_string
+from langgraph.types import Send
 
 
 from research_assistant_example.src.prompts import prompts
 from research_assistant_example.src.schema.state import Perspectives, GenerateAnalystsState, InterviewState, SearchQuery
+from research_assistant_example.src.schema.state import ResearchGraphState
 from research_assistant_example.src.schema.context import ModelContext
 from research_assistant_example.src.llm.llm import MODELS
 
@@ -118,3 +120,74 @@ def write_section(state: InterviewState, runtime:Runtime[ModelContext]):
                          [HumanMessage(content=f"Use this source to write your sections: {context}")])
 
     return {"sections": [section.content]}
+
+
+
+
+def write_report(state: ResearchGraphState, runtime: Runtime[ModelContext]):
+
+    # get states
+    sections = state["sections"]
+    topic = state["topic"]
+
+    formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
+
+    system_message = prompts.report_writer_instructions.format(topic=topic,
+                                                       context=formatted_str_sections)
+    llm = MODELS[runtime.context.model_provider]
+    report = llm.invoke([SystemMessage(content=system_message)] +
+                        [HumanMessage(content=f"Write a report based upon these memos.")])
+    return {"content": report.content}
+
+
+def write_introduction(state: ResearchGraphState, runtime: Runtime[ModelContext]):
+    # Full set of sections
+    sections = state["sections"]
+    topic = state["topic"]
+
+    # Concat all sections together
+    formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
+
+    # Summarize the sections into a final report
+
+    instructions = prompts.intro_conclusion_instructions.format(topic=topic, formatted_str_sections=formatted_str_sections)
+    llm = MODELS[runtime.context.model_provider]
+    intro = llm.invoke([instructions] + [HumanMessage(content=f"Write the report introduction")])
+    return {"introduction": intro.content}
+
+
+def write_conclusion(state: ResearchGraphState, runtime: Runtime[ModelContext]):
+    # Full set of sections
+    sections = state["sections"]
+    topic = state["topic"]
+
+    # Concat all sections together
+    formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
+
+    # Summarize the sections into a final report
+
+    instructions = prompts.intro_conclusion_instructions.format(topic=topic, formatted_str_sections=formatted_str_sections)
+    llm = MODELS[runtime.context.model_provider]
+    conclusion = llm.invoke([instructions] + [HumanMessage(content=f"Write the report conclusion")])
+    return {"conclusion": conclusion.content}
+
+
+def finalize_report(state: ResearchGraphState):
+    """ The is the "reduce" step where we gather all the sections, combine them, and reflect on them to write the intro/conclusion """
+    # Save full final report
+    content = state["content"]
+    if content.startswith("## Insights"):
+        content = content.strip("## Insights")
+    if "## Sources" in content:
+        try:
+            content, sources = content.split("\n## Sources\n")
+        except:
+            sources = None
+    else:
+        sources = None
+
+    final_report = state["introduction"] + "\n\n---\n\n" + content + "\n\n---\n\n" + state["conclusion"]
+    if sources is not None:
+        final_report += "\n\n## Sources\n" + sources
+    return {"final_report": final_report}
+
