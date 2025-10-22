@@ -1,6 +1,8 @@
 from langgraph.graph import END
-from research_assistant_example.src.schema.state import GenerateAnalystsState, InterviewState
-from langchain_core.messages import AIMessage
+from research_assistant_example.src.schema.state import GenerateAnalystsState, InterviewState,\
+    ResearchGraphState
+from langchain_core.messages import AIMessage, HumanMessage
+from langgraph.types import Send
 
 def should_continue(state: GenerateAnalystsState):
     """ Return the next node to execute """

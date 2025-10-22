@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 
-from research_assistant_example.src.schema.state import GenerateAnalystsState, InterviewState
+from research_assistant_example.src.schema.state import GenerateAnalystsState, InterviewState, ResearchGraphState
 from research_assistant_example.src.schema.context import ModelContext
 from research_assistant_example.src.graph.nodes import create_analysts, human_feedback
 from research_assistant_example.src.graph.nodes import generate_question, search_wikipedia, generate_answer, \
@@ -46,7 +46,7 @@ def build_interview_workflow(save_in_memory=True):
         memory = MemorySaver()
         return graph.compile(checkpointer=memory).with_config(run_name="Conduct Interviews")
 
-    return graph.complile()
+    return graph.compile()
 
 
 def build_research_workflow(save_in_memory=True):

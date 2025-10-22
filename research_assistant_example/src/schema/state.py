@@ -59,5 +59,6 @@ __all__ = [
     "Analyst",
     "Perspectives",
     "GenerateAnalystsState",
-    "SearchQuery"
+    "SearchQuery",
+    "ResearchGraphState"
 ]
